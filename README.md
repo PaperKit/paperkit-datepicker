@@ -1,3 +1,3 @@
-# paperkit-datepickjer
+# paperkit-datepicker
 
 A material datepicker.
