@@ -1,0 +1,103 @@
+<!--
+@license
+Copyright (c) The PaperKit Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://http://paperkit.github.io/LICENSE.txt
+The complete set of authors may be found at http://paperkit.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://paperkit.github.io/CONTRIBUTORS.txt
+-->
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="bower_components/paper-behaviors/paper-button-behavior.html">
+
+<script src="bower_components/moment/min/moment-with-locales.min.js"></script>
+<!--
+A material datepicker.
+
+Example:
+
+    <paperkit-datepicker></paperkit-datepicker>
+
+@demo
+-->
+<dom-module id="paperkit-datepicker-button">
+
+  <style>
+  :host {
+  	display: inline-block;
+  	position: relative;
+		border-radius: 50%;            
+		width: 40px;
+		height: 40px;
+		text-align: center;
+		@apply(--paper-font-caption);
+		line-height: 40px !important;
+		outline: none;				
+		-moz-user-select: none;
+		-ms-user-select: none;
+		-webkit-user-select: none;
+		user-select: none;
+		cursor: pointer;
+		z-index: 0
+  }
+  
+	:host([noink]) paper-ripple {
+		display: none;
+	}
+	
+	:host([selected]) {
+		background-color: var(--primary-color);
+		color: var(--inverse-color);
+	}
+	
+	:host([unvisible])>paper-ripple,
+	:host([unvisible])>div {
+		display: none;
+		cursor: auto;
+	}
+  </style>
+  
+  <template>
+		<div id="button">
+			<paper-ripple></paper-ripple>
+			<div>
+				<content></content>
+			</div>
+		</div>  
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+
+    is: 'paperkit-datepicker-button',
+
+    behaviors: [
+			Polymer.PaperButtonBehavior
+		],
+		
+		properties: {
+		  selected: {
+		    type: Boolean,
+		    reflectToAttribute: true,
+        value: false
+		  },
+		  unvisible: {
+		    type: Boolean,
+		    reflectToAttribute: true,
+		    value: false,
+		    observer: '_changeUnvisible'
+		  }
+		},
+		
+		// Behavior
+		_changeUnvisible: function(newvalue, oldvalue) {
+			if(newvalue) {
+			  this.disabled=true;
+			} else {
+			  this.disabled=false;
+			}
+		}
+  });
+</script>

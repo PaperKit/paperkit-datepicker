@@ -1,0 +1,30 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) The PaperKit Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://http://paperkit.github.io/LICENSE.txt
+The complete set of authors may be found at http://paperkit.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://paperkit.github.io/CONTRIBUTORS.txt
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>seed-element Demo</title>    
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+    <script>
+    window.Polymer = window.Polymer || {};
+    window.Polymer.dom = 'shadow';
+    </script>
+    <link rel="import" href="../paperkit-datepicker-monthbox.html">
+    <style is="custom-style">
+	  	paperkit-datepicker-monthbox {
+	  		--primary-color: #009688;
+	  		--inverse-color: white;
+	  	}
+  	</style>
+  </head>
+  <body>
+    <paperkit-datepicker-monthbox date="01/01/2015" month='201405' locale='en'></paperkit-datepicker-monthbox>
+  </body>
+</html>

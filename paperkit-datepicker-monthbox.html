@@ -1,0 +1,245 @@
+<!--
+@license
+Copyright (c) The PaperKit Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://http://paperkit.github.io/LICENSE.txt
+The complete set of authors may be found at http://paperkit.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://paperkit.github.io/CONTRIBUTORS.txt
+-->
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-flex-layout/classes/iron-flex-layout.html">
+<link rel="import" href="bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="bower_components/neon-animation/neon-animated-pages.html">
+<link rel="import" href="paperkit-datepicker-button.html">
+
+<script src="bower_components/moment/min/moment-with-locales.min.js"></script>
+<!--
+A material datepicker.
+
+Example:
+
+    <paperkit-datepicker-datebox></paperkit-datepicker-datebox>
+
+@demo
+-->
+<dom-module id="paperkit-datepicker-monthbox">
+  <style>  
+    :host {
+    	display: inline-block;
+      box-sizing: border-box;			
+      outline: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+        
+    #month-selector {
+    	text-align: center;
+    	line-height: 40px;
+    	@apply(--paper-font-body1);
+    }
+    
+    .month-page {    
+      height: 100%;
+    	@apply(--layout-center-center);
+    	@apply(--layout-vertical);
+    }
+    
+    #header, .week {
+      @apply(--layout-horizontal);
+    }
+    
+    #days {
+      @apply(--layout-vertical);
+    }
+    
+    .day-header {    	
+			width: 40px;
+			height: 40px;
+			text-align: center;
+			@apply(--paper-font-caption);
+			line-height: 40px !important;
+			opacity: var(--dark-secondary-opacity);
+    }    
+    
+    .day-header,
+    #month-selector {
+    	font-weight: 500 !important;
+    	line-height: 40px !important;    	
+    }
+	</style>
+  <template>
+	 	<div id="month-selector">[[ _formatMonth('MMMM YYYY', month) ]]</div>
+		<div id="header">
+			<template is="dom-repeat" items="[[weekdays]]">
+				<div class="day"><div class="day-header">{{item.shortname}}</div></div>
+			</template>
+		</div>
+		<div id="days" on-mouseup="_selectDay">
+			<template is="dom-repeat" items="[[weeks]]" as="week">
+				<div class="week">
+					<template is="dom-repeat" items="{{week.days}}" as="day" index-as="day_index">
+						<paperkit-datepicker-button date$="[[day.date]]" unvisible$="{{ _isHidden(day.date) }}" on-change="_selectDay">{{day.day}}</paperkit-datepicker-button>
+					</template>
+				</div>
+			</template>
+		</div>
+	</template>
+</dom-module>
+
+<script>
+	Polymer({
+
+    is: 'paperkit-datepicker-monthbox',
+    
+    Behaviors: [
+			Polymer.NeonAnimatableBehavior
+		],
+    
+    properties: {
+      showOtherMonthDays: {
+        type: Boolean,
+        reflectToAttribute: true,
+        value: false
+      },
+      month: {
+      	type: Number,
+      	reflectToAttribute: true,
+      	notify: true
+      },
+      date: {
+        type: String,
+        reflectToAttribute: true,
+        notify: true
+        // value: function() { return moment().format(); }       
+      },
+      locale: {
+        type: String,
+        reflectToAttribute: true,
+        notify: true,
+        value: function() { 
+          return window.navigator.userLanguage || window.navigator.language || 'en'; 
+        }
+      },
+      moment: {
+        type: Object,
+        reflectToAttribute: false,
+        notify: true,
+        computed: '_computeMoment(date, locale)',
+        observer: '_changeDate'
+      },
+      weekdays: {
+        type: Array,
+        reflectToAttribute: false,
+        notify: true,
+        computed: '_getHeaderElements(locale)'	 
+      },
+      weeks: {
+        type: Array,
+        reflectToAttribute: false,
+        notify: true,
+        computed: '_getMonthElements(month, locale)'	 
+      }
+    },
+    
+    // Events
+    _selectDay: function(event) {
+      var target = event.target;
+      if(target.tagName==="PAPERKIT-DATEPICKER-BUTTON") {
+        var day = target.getAttribute('date');
+        this.date = day;
+        this.fire('change', { date: day });          
+      } 
+    },
+
+    // Element Behavior
+    _changeDate: function(newvalue, oldvalue) {
+      // Unset old selected
+      var elem = Polymer.dom(this.root).querySelector('paperkit-datepicker-button[selected]');
+      if(elem) {
+        elem.selected = false;
+      }
+      // Set new selected...
+   		elem = this._findDay(newvalue);
+   		if(elem) {
+   		  elem.selected=true;
+   		}
+    },
+    _isHidden: function(dateStr) {
+      var date = moment(dateStr);
+      var month = date.month()===moment(this.month, 'YYYYMM').month() ? false: true;
+      return month;
+    },
+		_getHeaderElements: function(locale) {
+		  var days = new Array();
+		  var weekdays = moment().locale(locale).localeData()._weekdays.slice(0);
+		  weekdays = weekdays.concat(weekdays.splice(0, moment().locale(locale).localeData().firstDayOfWeek()));		
+		  for(var i=0, length=weekdays.length; i<length; i++) {
+		    var weekday = weekdays[i];
+		    days.push({ shortname: weekday.substring(0,1), fullname: weekday });
+		  }		  
+		  return days;
+		},
+		_getMonthElements: function(month, locale) {
+		  var weeks = [];
+		  var day = moment(month,'YYYYMM');
+		  var firstDayOfMonth = day.clone().locale(locale).startOf('month');
+		  var lastDayOfMonth = day.clone().locale(locale).endOf('month');
+		  var first = firstDayOfMonth.clone().locale(locale).startOf('week');
+		  var last = lastDayOfMonth.clone().locale(locale).endOf('week').add(1);
+
+		  var week = {
+ 		  	days: []        
+ 		  };
+ 		  
+ 		  do {		    
+ 		  	week.days.push(
+ 					{ day: first.date(), 
+ 					  date: first.toString() 
+ 					});
+
+ 		  	if(first.isSame(first.clone().locale(locale).endOf('week'), 'day')) {
+ 		  	 	weeks.push(week);
+ 		      
+ 		      if(!first.isSame(last)) {
+ 			      week = { days: [] };
+ 		      }		  	  
+ 		  	}
+ 		  	first.add(1,'d');
+ 		  } while(!first.isSame(last, 'day'));
+ 		  
+ 		  return weeks;
+		},
+		_formatMonth: function(format, month) {
+		  return moment(month, 'YYYYMM').locale(this.locale).format(format);
+		},
+		_computeMoment: function(date, locale) {
+		  if(date==='') {
+		    // return moment().locale(locale);
+		    return null;
+		  }
+			return moment(date).locale(locale);  
+		},
+		_computeMonthPageStyle: function(page) {
+		  var style = 'month-page';
+		  if(page==='this-month-page') {
+		    style += ' selected';
+		  }
+		  return style;
+		},
+		_findDay: function(day) {
+		  var elems = Polymer.dom(this.root).querySelectorAll('.week > paperkit-datepicker-button');
+		  if(elems) {
+			  for(var i=0, length=elems.length; i<length; i++) {
+		  		var elem = elems[i];
+		  		if(moment(elem.getAttribute('date')).isSame(day,'day')) {
+		  		  return elem;
+		  		}
+			  }		    
+		  }
+		  return false;
+		}
+  });
+
+</script>
